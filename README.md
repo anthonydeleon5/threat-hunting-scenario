@@ -3,7 +3,7 @@
 # Threat Hunt Report: Unauthorized TOR Usage
 
 ## Platforms and Languages Leveraged
-- **Windows 10 Virtual Machines** (Microsoft Azure)
+- **Windows 11 Virtual Machines** (Microsoft Azure)
 - **EDR Platform:** Microsoft Defender for Endpoint
 - **Query Language:** Kusto Query Language (KQL)
 - **Tool:** Tor Browser
@@ -21,14 +21,14 @@ Management suspects that some employees may be using TOR browsers to bypass netw
 ## Steps Taken
 
 ### 1. Searched the `DeviceFileEvents` Table
-Searched for any file that had the string "tor" in it and discovered that the user **antadmin** on device **ant-vm-pro** downloaded a TOR installer. This activity began at **2026-03-27T23:55:01Z**. Later, at **00:21:01Z**, the user created a file called `tor-shopping-list.txt.txt` on the desktop.
+Searched for any file that had the string "tor" in it and discovered that the user **antadmin** on device **ant-vm-pro** downloaded a TOR installer. This activity began at **2026-03-27T7:55:01. Later, at **08:21:01, the user created a file called `tor-shopping-list.txt.txt` on the desktop.
 
 **Query used to locate events:**
 ```kql
 DeviceFileEvents
 | where DeviceName == "ant-vm-pro"
 | where FileName contains "tor"
-| where Timestamp >= datetime(2026-03-27T23:55:01Z)
+| where Timestamp >= datetime(2026-03-27T7:55:01)
 | order by Timestamp desc
 | project Timestamp, DeviceName, ActionType, FileName, SHA256, Account = InitiatingProcessAccountName
 ```
@@ -37,7 +37,7 @@ DeviceFileEvents
 ---
 
 ### 2. Searched the `DeviceProcessEvents` Table
-Searched for the specific installer execution. Logs confirm that at **23:58:03Z**, an employee on the **ant-vm-pro** device ran the file `tor-browser-windows-x86_64-portable-15.0.8.exe` from their Downloads folder, using a command that triggered a silent installation (`/S`).
+Searched for the specific installer execution. Logs confirm that at **07:58:03, employee antadmin on the **ant-vm-pro** device ran the file `tor-browser-windows-x86_64-portable-15.0.8.exe` from their Downloads folder, using a command that triggered a silent installation (`/S`).
 
 **Query used to locate event:**
 ```kql
@@ -51,7 +51,7 @@ DeviceProcessEvents
 ---
 
 ### 3. Searched the `DeviceProcessEvents` Table for TOR Browser Execution
-Searched for evidence that the user actually launched the browser. At **23:58:52Z**, the system recorded the launch of `firefox.exe` (the TOR browser shell) followed by `tor.exe` (the proxy service).
+Searched for evidence that the user actually launched the browser. At **07:58:52, the system recorded the launch of `firefox.exe` (the TOR browser shell) followed by `tor.exe` (the proxy service).
 
 **Query used to locate events:**
 ```kql
@@ -65,7 +65,7 @@ DeviceProcessEvents
 ---
 
 ### 4. Searched the `DeviceNetworkEvents` Table for TOR Network Connections
-Searched for traffic on known TOR ports. At **00:01:16Z**, the device successfully established a connection to a remote relay at **109.104.155.20** on port **9001**. The connection was initiated by `tor.exe`.
+Searched for traffic on known TOR ports. At **08:01:16, the device successfully established a connection to a remote relay at **109.104.155.20** on port **9001**. The connection was initiated by `tor.exe`.
 
 **Query used to locate events:**
 ```kql
@@ -82,27 +82,27 @@ DeviceNetworkEvents
 ## Chronological Event Timeline
 
 ### 1. File Download - TOR Installer
-- **Timestamp:** `2026-03-27T23:55:01Z`
+- **Timestamp:** `2026-03-27T07:55:01Z`
 - **Event:** User `antadmin` downloaded `tor-browser-windows-x86_64-portable-15.0.8.exe`.
 - **Action:** File download detected.
 
 ### 2. Process Execution - TOR Browser Installation
-- **Timestamp:** `2026-03-27T23:58:03Z`
+- **Timestamp:** `2026-03-27T07:58:03Z`
 - **Event:** User `antadmin` executed the installer in silent mode (`/S`).
 - **Action:** Process creation detected.
 
 ### 3. Process Execution - TOR Browser Launch
-- **Timestamp:** `2026-03-27T23:58:52Z`
+- **Timestamp:** `2026-03-27T07:58:52Z`
 - **Event:** User `antadmin` opened the TOR browser; `firefox.exe` and `tor.exe` were created.
 - **Action:** Process creation of TOR browser-related executables.
 
 ### 4. Network Connection - TOR Network
-- **Timestamp:** `2026-03-28T00:01:16Z`
+- **Timestamp:** `2026-03-28T08:01:16Z`
 - **Event:** Connection to IP `109.104.155.20` on port `9001` established.
 - **Action:** Connection success.
 
 ### 5. File Creation - TOR Shopping List
-- **Timestamp:** `2026-03-28T00:21:01Z`
+- **Timestamp:** `2026-03-28T08:21:01Z`
 - **Event:** User `antadmin` created `tor-shopping-list.txt.txt` on the desktop.
 - **Action:** File creation detected.
 
