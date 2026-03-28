@@ -2,12 +2,11 @@
 **Unauthorized TOR Browser Installation and Use**
 
 ## Steps the "Bad Actor" took Create Logs and IoCs:
-1. Download the TOR browser installer: https://www.torproject.org/download/
-2. Install it silently: ```tor-browser-windows-x86_64-portable-15.0.8.exe /S```
-3. Opens the TOR browser from the folder on the desktop
-4. Connect to TOR and browse a few sites.
-5. Create a folder on your desktop called ```tor-shopping-list.txt``` and put a few fake items in there
-6. Delete the file.
+1. Download: Downloaded the portable TOR installer: tor-browser-windows-x86_64-portable-15.0.8.exe.
+2. Silent Install: Executed the installer with the silent switch: tor-browser-windows-x86_64-portable-15.0.8.exe /S.
+3. Launch: Opened the TOR browser (firefox.exe), which spawned the tor.exe proxy process.
+4. Browse: Successfully connected to a TOR relay at 109.104.155.20 on port 9001.
+5. Exfiltrate/Log: Created a file on the desktop named tor-shopping-list.txt.txt to log activities.
 
 ---
 
@@ -16,7 +15,7 @@
 |---------------------|------------------------------------------------------------------------------|
 | **Name**| DeviceFileEvents|
 | **Info**|https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceinfo-table|
-| **Purpose**| Used for detecting TOR download and installation, as well as the shopping list creation and deletion. |
+| **Purpose**| Used for detecting TOR download and installation, as well as the shopping list creation. |
 
 | **Parameter**       | **Description**                                                              |
 |---------------------|------------------------------------------------------------------------------|
@@ -34,37 +33,37 @@
 
 ## Related Queries:
 ```kql
-// Installer name == tor-browser-windows-x86_64-portable-(version).exe
-// Detect the installer being downloaded
+// 1. Detect the installer being downloaded or created
 DeviceFileEvents
-| where FileName startswith "tor"
+| where DeviceName == "ant-vm-pro"
+| where FileName contains "tor-browser-windows-x86_64-portable-15.0.8.exe"
+| project Timestamp, DeviceName, ActionType, FileName, SHA256, Account = InitiatingProcessAccountName
 
-// TOR Browser being silently installed
-// Take note of two spaces before the /S (I don't know why)
+// 2. Detect the silent installation process execution
 DeviceProcessEvents
-| where ProcessCommandLine contains "tor-browser-windows-x86_64-portable-14.0.1.exe  /S"
-| project Timestamp, DeviceName, ActionType, FileName, ProcessCommandLine
+| where DeviceName == "ant-vm-pro"
+| where ProcessCommandLine contains "tor-browser-windows-x86_64-portable-15.0.8.exe /S"
+| project Timestamp, DeviceName, ActionType, FileName, FolderPath, AccountName, ProcessCommandLine
 
-// TOR Browser or service was successfully installed and is present on the disk
-DeviceFileEvents
-| where FileName has_any ("tor.exe", "firefox.exe")
-| project  Timestamp, DeviceName, RequestAccountName, ActionType, InitiatingProcessCommandLine
-
-// TOR Browser or service was launched
+// 3. Detect the launch of the TOR Browser and its proxy service
 DeviceProcessEvents
-| where ProcessCommandLine has_any("tor.exe","firefox.exe")
-| project  Timestamp, DeviceName, AccountName, ActionType, ProcessCommandLine
-
-// TOR Browser or service is being used and is actively creating network connections
-DeviceNetworkEvents
-| where InitiatingProcessFileName in~ ("tor.exe", "firefox.exe")
-| where RemotePort in (9001, 9030, 9040, 9050, 9051, 9150)
-| project Timestamp, DeviceName, InitiatingProcessAccountName, InitiatingProcessFileName, RemoteIP, RemotePort, RemoteUrl
+| where DeviceName == "ant-vm-pro"
+| where FileName has_any ("tor.exe", "firefox.exe", "tor-browser.exe")
+| project Timestamp, DeviceName, AccountName, ActionType, FileName, ProcessCommandLine
 | order by Timestamp desc
 
-// User shopping list was created and, changed, or deleted
+// 4. Detect successful network connections to TOR relays
+DeviceNetworkEvents
+| where DeviceName == "ant-vm-pro"
+| where RemotePort in ("9040", "9030", "9001", "9050", "9051", "9150")
+| project Timestamp, DeviceName, ActionType, RemoteIP, RemotePort, InitiatingProcessFileName
+| order by Timestamp desc
+
+// 5. Detect the creation of the "shopping list" file
 DeviceFileEvents
-| where FileName contains "shopping-list.txt"
+| where DeviceName == "ant-vm-pro"
+| where FileName contains "tor-shopping-list.txt"
+| project Timestamp, DeviceName, ActionType, FileName, FolderPath
 ```
 
 ---
@@ -73,16 +72,6 @@ DeviceFileEvents
 - **Author Name**: Anthony De Leon
 - **Author Contact**: https://www.linkedin.com/in/anthonydeleon5/
 - **Date**: March 28, 2026
-
-## Validated By:
-- **Reviewer Name**: 
-- **Reviewer Contact**: 
-- **Validation Date**: 
-
----
-
-## Additional Notes:
-- **None**
 
 ---
 
