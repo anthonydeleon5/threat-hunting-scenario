@@ -27,6 +27,7 @@ Management suspects that some employees may be using TOR browsers to bypass netw
     Searched for any file that had the string "tor" in it and discovered that the user **antadmin** on device **ant-vm-pro** downloaded a TOR installer. This activity began at **2026-03-27T23:55:01Z**. Later, at **00:21:01Z**, the user created a file called `tor-shopping-list.txt.txt` on the desktop.
     
     **Query used to locate events:**
+  
     ```kql
     DeviceFileEvents
     | where DeviceName == "ant-vm-pro"
@@ -42,6 +43,7 @@ Management suspects that some employees may be using TOR browsers to bypass netw
     Searched for the specific installer execution. Logs confirm that at **23:58:03Z**, an employee on the **ant-vm-pro** device ran the file `tor-browser-windows-x86_64-portable-15.0.8.exe` from their Downloads folder, using a command that triggered a silent installation (`/S`).
     
     **Query used to locate event:**
+    
     ```kql
     DeviceProcessEvents
     | where DeviceName == "ant-vm-pro"
@@ -55,6 +57,7 @@ Management suspects that some employees may be using TOR browsers to bypass netw
     Searched for evidence that the user actually launched the browser. At **23:58:52Z**, the system recorded the launch of `firefox.exe` (the TOR browser shell) followed by `tor.exe` (the proxy service).
     
     **Query used to locate events:**
+    
     ```kql
     DeviceProcessEvents
     | where DeviceName == "ant-vm-pro"
@@ -70,6 +73,7 @@ Management suspects that some employees may be using TOR browsers to bypass netw
     Searched for traffic on known TOR ports. At **00:01:16Z**, the device successfully established a connection to a remote relay at **109.104.155.20** on port **9001**. The connection was initiated by `tor.exe`.
     
     **Query used to locate events:**
+    
     ```kql
     DeviceNetworkEvents
     | where DeviceName == "ant-vm-pro"
